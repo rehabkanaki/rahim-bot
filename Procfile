@@ -1,1 +1,1 @@
-web: gunicorn keep_alive:app
+web: python main.py
