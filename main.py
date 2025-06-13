@@ -44,7 +44,7 @@ application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_m
 @app.route(f"/{TOKEN}", methods=["POST"])
 def webhook():
     update = Update.de_json(request.get_json(force=True), bot)
-    application.process_update(update)
+    asyncio.create_task(application.process_update(update))  # ✅ هنا التعديل المهم
     return "ok"
 
 # إعداد الويب هوك
