@@ -1,47 +1,43 @@
 import os
-import logging
+from flask import Flask, request
+from telegram import Update, Bot
+from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
 import openai
-from telegram import Update
-from telegram.ext import ApplicationBuilder, ContextTypes, MessageHandler, filters
 
-# إعداد الـ Logging
-logging.basicConfig(
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    level=logging.INFO
-)
+TOKEN = os.getenv("BOT_TOKEN")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+WEBHOOK_URL = os.getenv("WEBHOOK_URL")
 
-# إعداد مفتاح OpenAI
-openai.api_key = os.getenv("OPENAI_API_KEY")
+app = Flask(__name__)
 
-# دالة لمعالجة الرسائل
+openai.api_key = OPENAI_API_KEY
+bot = Bot(token=TOKEN)
+
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("👋 مرحباً! أرسل لي أي رسالة وسأرد عليك باستخدام ChatGPT.")
+
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_message = update.message.text
+    response = openai.chat.completions.create(
+        model="gpt-3.5-turbo",
+        messages=[{"role": "user", "content": user_message}]
+    )
+    await update.message.reply_text(response.choices[0].message.content)
 
-    try:
-        response = openai.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": "system", "content": "أنت مساعد ذكي في مجموعة تليقرام."},
-                {"role": "user", "content": user_message}
-            ]
-        )
-        bot_reply = response.choices[0].message.content.strip()
-
-        await update.message.reply_text(bot_reply)
-
-    except Exception as e:
-        logging.error(f"حدث خطأ: {e}")
-        await update.message.reply_text("حدث خطأ أثناء الاتصال بـ OpenAI.")
-
-# تشغيل البوت
-async def main():
-    app = ApplicationBuilder().token(os.getenv("BOT_TOKEN")).build()
-
-    app.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), handle_message))
-
-    print("✅ البوت شغال...")
-    await app.run_polling()
+@app.route(f"/{TOKEN}", methods=["POST"])
+def webhook():
+    update = Update.de_json(request.get_json(force=True), bot)
+    app.bot_app.process_update(update)
+    return "ok"
 
 if __name__ == "__main__":
-    import asyncio
-    asyncio.run(main())
+    app.bot_app = ApplicationBuilder().token(TOKEN).build()
+    app.bot_app.add_handler(CommandHandler("start", start))
+    app.bot_app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+
+    # إعداد Webhook
+    bot.delete_webhook()
+    bot.set_webhook(f"{WEBHOOK_URL}/{TOKEN}")
+    print("✅ Webhook set successfully")
+
+    app.run(host="0.0.0.0", port=10000)
