@@ -1,65 +1,56 @@
 import os
 import asyncio
 from flask import Flask, request
-from telegram import Update, Bot
-from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
-import openai
+from telegram import Update
+from telegram.ext import Application, CommandHandler, ContextTypes
 
-# المتغيرات البيئية
-TOKEN = os.getenv("BOT_TOKEN")
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-WEBHOOK_URL = os.getenv("WEBHOOK_URL")
+# ----------------------------
+# إعدادات البوت
+# ----------------------------
 
-# إعدادات Flask
+BOT_TOKEN = os.getenv("BOT_TOKEN")  # الأفضل تخزينه كمتغير بيئي
+WEBHOOK_URL = f"https://your-app-name.onrender.com/{BOT_TOKEN}"
+
 app = Flask(__name__)
 
-# إعداد البوت وOpenAI
-bot = Bot(token=TOKEN)
-openai.api_key = OPENAI_API_KEY
+application = Application.builder().token(BOT_TOKEN).build()
 
-# Telegram Application
-application = ApplicationBuilder().token(TOKEN).build()
+# ----------------------------
+# أوامر البوت
+# ----------------------------
 
-# تعريف الأوامر
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("👋 مرحباً! أرسل لي أي رسالة وسأرد عليك باستخدام ChatGPT.")
+    await update.message.reply_text("أهلا بيك! 🌟 أنا شغال 24/7 مع Render.")
 
-async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_message = update.message.text
-    try:
-        response = openai.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[{"role": "user", "content": user_message}]
-        )
-        reply = response.choices[0].message.content
-    except Exception as e:
-        reply = "❌ حدث خطأ أثناء الاتصال بـ OpenAI."
-    await update.message.reply_text(reply)
-
-# تعيين الهاندلرز
 application.add_handler(CommandHandler("start", start))
-application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
-# نقطة استقبال الويب هوك
+# ----------------------------
+# نقطة استقبال Webhook من Telegram
+# ----------------------------
+
 @app.route(f"/{BOT_TOKEN}", methods=["POST"])
 def webhook():
     if request.method == "POST":
-        update = Update.de_json(request.get_json(force=True), bot)
-        
-        import asyncio
+        update = Update.de_json(request.get_json(force=True), application.bot)
+
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         loop.run_until_complete(application.process_update(update))
-        
+        loop.close()
+
         return "ok"
 
+# ----------------------------
+# نقطة الفحص البسيط
+# ----------------------------
 
-# إعداد الويب هوك
-async def setup_webhook():
-    await bot.delete_webhook()
-    await bot.set_webhook(f"{WEBHOOK_URL}/{TOKEN}")
-    print("✅ Webhook set successfully")
+@app.route("/")
+def home():
+    return "بوت رحيم شغال ✅"
+
+# ----------------------------
+# تشغيل Flask (للتجربة محلياً)
+# ----------------------------
 
 if __name__ == "__main__":
-    asyncio.run(setup_webhook())
-    app.run(host="0.0.0.0", port=10000)
+    app.run(port=5000, debug=True)
