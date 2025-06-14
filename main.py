@@ -41,11 +41,18 @@ application.add_handler(CommandHandler("start", start))
 application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
 # نقطة استقبال الويب هوك
-@app.route(f"/{TOKEN}", methods=["POST"])
+@app.route(f"/{BOT_TOKEN}", methods=["POST"])
 def webhook():
-    update = Update.de_json(request.get_json(force=True), bot)
-    asyncio.create_task(application.process_update(update))  # ✅ هنا التعديل المهم
-    return "ok"
+    if request.method == "POST":
+        update = Update.de_json(request.get_json(force=True), bot)
+        
+        import asyncio
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        loop.run_until_complete(application.process_update(update))
+        
+        return "ok"
+
 
 # إعداد الويب هوك
 async def setup_webhook():
