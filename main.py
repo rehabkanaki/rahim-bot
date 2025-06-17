@@ -3,6 +3,7 @@ import logging
 from telegram import Update
 from telegram.ext import ApplicationBuilder, ContextTypes, MessageHandler, filters
 from openai import OpenAI
+from keep_alive import keep_alive
 
 # إعداد التسجيل
 logging.basicConfig(
@@ -43,6 +44,13 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except Exception as e:
         logging.error(f"Error: {e}")
         await update.message.reply_text("حصل خطأ، حاول مرة تانية.")
+
+if __name__ == '__main__':
+    keep_alive()
+    app = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+    print("Bot is running...")
+    app.run_polling()
 
 # تشغيل البوت
 if __name__ == '__main__':
