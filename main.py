@@ -45,15 +45,9 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         logging.error(f"Error: {e}")
         await update.message.reply_text("حصل خطأ، حاول مرة تانية.")
 
-if __name__ == '__main__':
-    keep_alive()
-    app = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
-    print("Bot is running...")
-    app.run_polling()
-
 # تشغيل البوت
 if __name__ == '__main__':
+    keep_alive()
     app = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
     print("Bot is running...")
