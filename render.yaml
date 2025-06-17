@@ -1,12 +1,11 @@
 services:
-  - type: web
+  - type: worker
     name: rahim-bot
-    env: python
-    plan: free
-    buildCommand: "pip install -r requirements.txt"
-    startCommand: "python main.py"
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python main.py
     envVars:
-      - key: BOT_TOKEN
-        value: 7693680930:AAFyZ0-vMQfDYyyHDxfbKofTTJFEcJ0nhGs
-      - key: APP_URL
-        value: https://rahim-bot.onrender.com
+      - key: TELEGRAM_TOKEN
+        value: your-telegram-token
+      - key: OPENAI_API_KEY
+        value: your-openai-api-key
