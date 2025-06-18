@@ -1,54 +1,57 @@
 import os
-import logging
+from flask import Flask, request
 from telegram import Update
 from telegram.ext import ApplicationBuilder, ContextTypes, MessageHandler, filters
-from openai import OpenAI
-from keep_alive import keep_alive
 
-# إعداد التسجيل
-logging.basicConfig(
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    level=logging.INFO
-)
+import openai
 
-# المفاتيح
+# متغيرات البيئة
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+APP_URL = os.getenv("APP_URL")  # مثلاً: https://rahim-bot.onrender.com
 
-# عميل OpenAI
-client = OpenAI(api_key=OPENAI_API_KEY)
+openai.api_key = OPENAI_API_KEY
 
-# اسم البوت كما هو على تيليقرام (صغير وحرف @ مش داخل في المتغير)
-BOT_USERNAME = "rahim_ai_bot"
+# إعداد البوت
+app_bot = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
 
+# تعريف الرد
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    message_text = update.message.text.lower()
-    chat_type = update.message.chat.type
-
-    # تجاهل رسائل القروبات إلا إذا تم ذكر اسم البوت أو التاق
-    if chat_type in ['group', 'supergroup']:
-        if f"@{BOT_USERNAME}" not in message_text and "رحيم" not in message_text:
-            return
+    user_message = update.message.text
 
     try:
-        response = client.chat.completions.create(
+        response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
             messages=[
-                {"role": "system", "content": "أنت مساعد ذكي وودود اسمه رحيم."},
-                {"role": "user", "content": message_text}
+                {"role": "user", "content": user_message}
             ]
         )
-        reply = response.choices[0].message.content
-        await update.message.reply_text(reply)
-
+        bot_reply = response['choices'][0]['message']['content']
     except Exception as e:
-        logging.error(f"Error: {e}")
-        await update.message.reply_text("حصل خطأ، حاول مرة تانية.")
+        bot_reply = "حصل خطأ: " + str(e)
 
-# تشغيل البوت
+    await update.message.reply_text(bot_reply)
+
+# إضافة الهاندلر
+app_bot.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+
+# إعداد Flask للسيرفر
+flask_app = Flask(__name__)
+
+@flask_app.route('/')
+def home():
+    return "رحيم شغال 😎"
+
+@flask_app.route(f'/{TELEGRAM_TOKEN}', methods=['POST'])
+async def webhook():
+    await app_bot.process_update(Update.de_json(request.get_json(force=True), app_bot.bot))
+    return 'ok'
+
+# تفعيل الويب هوك
+async def set_webhook():
+    await app_bot.bot.set_webhook(f"{APP_URL}/{TELEGRAM_TOKEN}")
+
 if __name__ == '__main__':
-    keep_alive()
-    app = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
-    print("Bot is running...")
-    app.run_polling()
+    import asyncio
+    asyncio.run(set_webhook())
+    flask_app.run(host='0.0.0.0', port=8080)
