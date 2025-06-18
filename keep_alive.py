@@ -13,7 +13,10 @@ def home():
     return "Bot is running ✅", 200
 
 @app.route(f'/{BOT_TOKEN}', methods=['POST'])
-async def webhook() -> str:
+def webhook():
     update = Update.de_json(request.get_json(force=True), application.bot)
-    await application.update_queue.put(update)
+
+    # نضيف التحديث لطابور التحديثات (من غير await لأننا الآن في دالة sync)
+    application.update_queue.put_nowait(update)
+
     return "ok", 200
