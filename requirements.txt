@@ -1,5 +1,4 @@
-python-telegram-bot==20.7
-openai
+python-telegram-bot==20.3
 flask
-requests
+openai
 gunicorn
