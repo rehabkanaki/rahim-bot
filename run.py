@@ -7,6 +7,13 @@ def run_flask():
 
 threading.Thread(target=run_flask).start()
 
-asyncio.run(application.initialize())
-asyncio.run(application.start())
-asyncio.get_event_loop().run_forever()
+async def start():
+    await application.initialize()
+    await application.start()
+    print("🤖 Rahim bot is ready and listening...")
+
+    # نخلي الـ event loop يشتغل للأبد
+    await asyncio.Event().wait()
+
+asyncio.run(start())
+
