@@ -15,6 +15,6 @@ def home():
 @app.route(f'/{BOT_TOKEN}', methods=['POST'])
 def webhook():
     update = Update.de_json(request.get_json(force=True), application.bot)
-    print(f"📥 New update received: {update}")  # لتأكيد التوصّل
+    print(f"📥 New update received: {update}")  # تأكيد استقبال التحديث
     application.update_queue.put_nowait(update)
     return "ok", 200
