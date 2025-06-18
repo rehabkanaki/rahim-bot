@@ -1,11 +1,8 @@
 services:
   - type: web
     name: rahim-bot
-    runtime: python
+    env: python
     buildCommand: pip install -r requirements.txt
-    startCommand: python main.py
-    envVars:
-      - key: TELEGRAM_TOKEN
-        value: your-telegram-token
-      - key: OPENAI_API_KEY
-        value: your-openai-api-key
+    startCommand: gunicorn main:flask_app
+    plan: free
+    autoDeploy: true
