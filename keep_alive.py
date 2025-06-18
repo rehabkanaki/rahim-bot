@@ -1,4 +1,5 @@
 import os
+import asyncio
 from flask import Flask, request
 from telegram import Update
 from main import get_application
@@ -15,6 +16,10 @@ def home():
 @app.route(f'/{BOT_TOKEN}', methods=['POST'])
 def webhook():
     update = Update.de_json(request.get_json(force=True), application.bot)
-    print(f"📥 New update received: {update}")  # تأكيد استقبال التحديث
-    application.update_queue.put_nowait(update)
+
+    print(f"📥 New update received: {update}")
+
+    # نستخدم create_task لمعالجة التحديث في الخلفية
+    asyncio.create_task(application.process_update(update))
+
     return "ok", 200
