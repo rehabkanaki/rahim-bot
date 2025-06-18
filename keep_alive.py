@@ -1,23 +1,21 @@
 import os
+import asyncio
 from flask import Flask, request
 from telegram import Update
-from telegram.ext import Application, Dispatcher, ContextTypes
-from main import get_application  # نستورد التطبيق من main
+from main import get_application
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 
 app = Flask(__name__)
-application = get_application()  # نحصل على التطبيق من main
-dispatcher: Dispatcher = application.dispatcher
-
+application = get_application()
 
 @app.route('/')
 def home():
     return "Bot is running ✅", 200
 
-
 @app.route(f'/{BOT_TOKEN}', methods=['POST'])
-async def webhook() -> str:
-    update = Update.de_json(request.get_json(force=True), application.bot)
-    await dispatcher.process_update(update)
+def webhook():
+    data = request.get_json(force=True)
+    update = Update.de_json(data, application.bot)
+    asyncio.run(application.update_queue.put(update))
     return "ok", 200
