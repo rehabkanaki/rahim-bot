@@ -1,5 +1,4 @@
 import os
-import asyncio
 from flask import Flask, request
 from telegram import Update
 from main import get_application
@@ -18,4 +17,3 @@ async def webhook() -> str:
     update = Update.de_json(request.get_json(force=True), application.bot)
     await application.update_queue.put(update)
     return "ok", 200
-
