@@ -14,8 +14,8 @@ def home():
     return "Bot is running ✅", 200
 
 @app.route(f'/{BOT_TOKEN}', methods=['POST'])
-def webhook():
-    data = request.get_json(force=True)
-    update = Update.de_json(data, application.bot)
-    asyncio.run(application.update_queue.put(update))
+async def webhook() -> str:
+    update = Update.de_json(request.get_json(force=True), application.bot)
+    await application.update_queue.put(update)
     return "ok", 200
+
