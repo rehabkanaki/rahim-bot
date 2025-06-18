@@ -15,8 +15,6 @@ def home():
 @app.route(f'/{BOT_TOKEN}', methods=['POST'])
 def webhook():
     update = Update.de_json(request.get_json(force=True), application.bot)
-    print(f"📥 New update received: {update}")  # <-- السطر دا
-    # نضيف التحديث لطابور التحديثات (من غير await لأننا الآن في دالة sync)
+    print(f"📥 New update received: {update}")  # لتأكيد التوصّل
     application.update_queue.put_nowait(update)
-
     return "ok", 200
