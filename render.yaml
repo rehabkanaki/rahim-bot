@@ -2,7 +2,6 @@ services:
   - type: web
     name: rahim-bot
     env: python
-    buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn main:flask_app
-    plan: free
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "gunicorn keep_alive:app"
     autoDeploy: true
