@@ -3,5 +3,5 @@ services:
     name: rahim-bot
     env: python
     buildCommand: "pip install -r requirements.txt"
-    startCommand: "gunicorn keep_alive:app"
+    startCommand: "python run.py"
     autoDeploy: true
