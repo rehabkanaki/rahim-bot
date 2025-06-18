@@ -8,6 +8,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("مرحبًا! بوت رحيم شغال ✅")
 
 async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    print("📨 رسالة جديدة وصلت:", update.message.text)  # طباعة للتأكد
     await update.message.reply_text(f"إنت كتبت: {update.message.text}")
 
 def get_application():
