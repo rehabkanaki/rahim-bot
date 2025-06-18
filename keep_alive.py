@@ -16,6 +16,8 @@ def home():
 def webhook():
     update = Update.de_json(request.get_json(force=True), application.bot)
 
+       print(f"📥 New update received: {update}")  # <-- السطر دا
+
     # نضيف التحديث لطابور التحديثات (من غير await لأننا الآن في دالة sync)
     application.update_queue.put_nowait(update)
 
