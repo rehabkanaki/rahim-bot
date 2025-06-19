@@ -25,17 +25,14 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # ========== دالة الرد باستخدام OpenAI ==========
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_message = update.message.text
-
     try:
         response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": user_message}],
             temperature=0.7
         )
-
         reply = response['choices'][0]['message']['content']
         await update.message.reply_text(reply)
-
     except Exception as e:
         print("Error:", e)
         await update.message.reply_text("حصل خطأ، حاول مرة تانية.")
@@ -44,32 +41,30 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 application.add_handler(CommandHandler("start", start))
 application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
-# ========== إعداد aiohttp webhook ==========
+# ========== aiohttp webhook ==========
 async def webhook_handler(request):
     if request.method == "POST":
-        data = await request.json()
-        update = Update.de_json(data, application.bot)
-        await application.initialize()
-        await application.process_update(update)
+        try:
+            data = await request.json()
+            update = Update.de_json(data, application.bot)
+            await application.process_update(update)
+        except Exception as e:
+            print("Webhook error:", e)
         return web.Response()
     else:
         return web.Response(status=405)
 
 async def start_webhook():
-    app = web.Application()
-    app.router.add_post(f"/webhook", webhook_handler)
-
+    # تهيئة التطبيق مرة واحدة فقط
     await application.initialize()
     await application.start()
-    await application.updater.start_webhook(
-        listen="0.0.0.0",
-        port=int(os.environ.get("PORT", 10000)),
-        webhook_url=f"{APP_URL}/webhook"
-    )
+
+    app = web.Application()
+    app.router.add_post("/webhook", webhook_handler)
 
     print("🚀 Rahim Bot is running via Webhook!")
     return app
 
-# ========== تشغيل الخادم ==========
+# ========== تشغيل السيرفر ==========
 if __name__ == "__main__":
-    web.run_app(start_webhook())
+    web.run_app(start_webhook(), port=int(os.environ.get("PORT", 10000)))
