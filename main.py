@@ -24,5 +24,5 @@ if __name__ == "__main__":
         listen="0.0.0.0",
         port=int(os.environ.get("PORT", 8443)),
         webhook_url=f"{APP_URL}/webhook",
-        webhook_path="/webhook"  # مهم جداً عشان يشتغل Webhook صح
+        path="/webhook"  # هنا استعملي path وليس webhook_path
     )
