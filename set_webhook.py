@@ -2,19 +2,13 @@ import os
 import requests
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-APP_URL = os.getenv("APP_URL")
+APP_URL = os.getenv("APP_URL")  # مثل: https://rahim-bot.onrender.com
 
-if not BOT_TOKEN or not APP_URL:
-    raise ValueError("تأكد من تعريف BOT_TOKEN وAPP_URL في متغيرات البيئة")
+webhook_url = f"{APP_URL}/webhook"
 
-WEBHOOK_URL = f"{APP_URL}/webhook"
-
-response = requests.post(
+res = requests.post(
     f"https://api.telegram.org/bot{BOT_TOKEN}/setWebhook",
-    json={"url": WEBHOOK_URL}
+    json={"url": webhook_url}
 )
 
-if response.status_code == 200:
-    print("✅ تم تعيين Webhook بنجاح")
-else:
-    print("❌ فشل تعيين Webhook:", response.status_code, response.text)
+print(res.status_code, res.text)
