@@ -2,12 +2,6 @@ services:
   - type: web
     name: rahim-bot
     env: python
-    buildCommand: "pip install -r requirements.txt"
-    startCommand: "python main.py"
-    envVars:
-      - key: BOT_TOKEN
-        value: "<توكن البوت هنا>"
-      - key: OPENAI_API_KEY
-        value: "<مفتاح OpenAI هنا>"
-      - key: APP_URL
-        value: "https://rahim-bot.onrender.com"
+    buildCommand: pip install -r requirements.txt
+    startCommand: python main.py
+    autoDeploy: true
