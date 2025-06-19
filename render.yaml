@@ -2,6 +2,13 @@ services:
   - type: web
     name: rahim-bot
     env: python
-    buildCommand: "pip install -r requirements.txt"
-    startCommand: "python run.py"
-    autoDeploy: true
+    env_vars:
+      - key: BOT_TOKEN
+        from_service: ""
+      - key: APP_URL
+        from_service: ""
+      - key: PORT
+        value: "8443"
+    plan: free
+    build_command: "pip install -r requirements.txt"
+    start_command: "python main.py"
