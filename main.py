@@ -1,66 +1,55 @@
 import os
 import openai
-import asyncio
+from aiohttp import web
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
-from aiohttp import web
 
+# تحميل المتغيرات البيئية
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-PORT = int(os.getenv("PORT", 8443))
+APP_URL = os.getenv("APP_URL")
 
+# تهيئة البوت
+application = ApplicationBuilder().token(BOT_TOKEN).build()
 openai.api_key = OPENAI_API_KEY
 
+# أوامر البوت
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("مرحبًا! بوت رحيم شغال ومستعد للدردشة 🤖✨")
+    await update.message.reply_text("مرحباً! أنا رحيم 🤖 أقدر أجاوبك على أي سؤال 😊")
 
-async def chatgpt_response(prompt: str) -> str:
-    response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
-        messages=[{"role": "user", "content": prompt}],
-        max_tokens=150,
-        temperature=0.7,
-    )
-    return response.choices[0].message.content.strip()
+async def chat(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_message = update.message.text
+    print(f"📨 رسالة من {update.effective_user.first_name}: {user_message}")
 
-async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_text = update.message.text
-    print(f"رسالة من المستخدم: {user_text}")
     try:
-        reply = await chatgpt_response(user_text)
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "user", "content": user_message}]
+        )
+        reply = response["choices"][0]["message"]["content"]
     except Exception as e:
-        reply = "آسف، حصلت مشكلة في الرد الآن. حاول مرة تانية."
-        print("خطأ في استدعاء OpenAI:", e)
+        reply = "حصل خطأ 😢، حاول تاني لاحقًا."
+        print("❌ خطأ من OpenAI:", e)
+
     await update.message.reply_text(reply)
 
+# إضافة الأوامر
+application.add_handler(CommandHandler("start", start))
+application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, chat))
+
+# Webhook handler
 async def webhook_handler(request):
-    app = request.app["bot_app"]
     data = await request.json()
-    update = Update.de_json(data, app.bot.token)
-    await app.update_queue.put(update)
+    update = Update.de_json(data, application.bot)
+    await application.process_update(update)
     return web.Response(text="ok")
 
-async def main():
-    app = ApplicationBuilder().token(BOT_TOKEN).build()
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+# إنشاء التطبيق AIOHTTP
+web_app = web.Application()
+web_app.router.add_post("/webhook", webhook_handler)
 
-    await app.initialize()
-    await app.start()
-
-    web_app = web.Application()
-    web_app["bot_app"] = app
-    web_app.router.add_post("/webhook", webhook_handler)
-
-    runner = web.AppRunner(web_app)
-    await runner.setup()
-    site = web.TCPSite(runner, "0.0.0.0", PORT)
-    await site.start()
-
-    print(f"🚀 بوت رحيم شغال على بورت {PORT}")
-
-    while True:
-        await asyncio.sleep(3600)
-
+# تشغيل الخادم
 if __name__ == "__main__":
-    asyncio.run(main())
+    port = int(os.environ.get("PORT", 10000))
+    print(f"🚀 Bot running on port {port} ...")
+    web.run_app(web_app, port=port)
