@@ -2,13 +2,12 @@ services:
   - type: web
     name: rahim-bot
     env: python
-    env_vars:
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "python main.py"
+    envVars:
       - key: BOT_TOKEN
-        from_service: ""
+        value: "<توكن البوت هنا>"
+      - key: OPENAI_API_KEY
+        value: "<مفتاح OpenAI هنا>"
       - key: APP_URL
-        from_service: ""
-      - key: PORT
-        value: "8443"
-    plan: free
-    build_command: "pip install -r requirements.txt"
-    start_command: "python main.py"
+        value: "https://rahim-bot.onrender.com"
