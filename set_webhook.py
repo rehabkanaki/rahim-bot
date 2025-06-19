@@ -1,18 +1,27 @@
 import os
 import requests
 
-BOT_TOKEN = os.getenv("TELEGRAM_TOKEN")  # أو اكتبي التوكن مباشرة
-APP_URL = os.getenv("APP_URL")  # أو اكتبي الرابط مباشرة، بدون سلاش في الآخر
+# جلب التوكن والرابط من متغيرات البيئة
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+APP_URL = os.getenv("APP_URL")  # مثال: https://rahim-bot.onrender.com
 
-# مثال مباشر لو ما دايرة تستخدمي os.getenv
-# BOT_TOKEN = "123456:ABC..."
-# APP_URL = "https://rahim-bot.onrender.com"
+# التحقق من القيم
+if not BOT_TOKEN or not APP_URL:
+    raise ValueError("❌ تأكد من أن متغيرات البيئة BOT_TOKEN و APP_URL معرفة.")
 
-webhook_url = f"{APP_URL}/{BOT_TOKEN}"
+# تحديد رابط الويب هوك (مفضل استخدام مسار ثابت مثل /webhook)
+WEBHOOK_PATH = "/webhook"
+WEBHOOK_URL = f"{APP_URL}{WEBHOOK_PATH}"
 
-res = requests.post(
+# إرسال طلب لتعيين الويب هوك
+response = requests.post(
     f"https://api.telegram.org/bot{BOT_TOKEN}/setWebhook",
-    json={"url": webhook_url}
+    json={"url": WEBHOOK_URL}
 )
 
-print(res.status_code, res.text)
+# طباعة النتيجة
+if response.status_code == 200:
+    print("✅ تم تعيين الـ Webhook بنجاح.")
+else:
+    print("❌ فشل في تعيين الـ Webhook:")
+    print(response.status_code, response.text)
