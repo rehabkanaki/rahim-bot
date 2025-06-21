@@ -15,8 +15,10 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     try:
         if update.message and update.message.text:
+            logging.info(f"📨 استلمت رسالة: {update.message.text}")  # سجل محتوى الرسالة في اللوق
             await update.message.reply_text(f"📨 وصلتني: {update.message.text}")
         else:
+            logging.info("⚠ استلمت رسالة لكنها ليست نصية.")
             await update.message.reply_text("❗ المعذرة، الرسالة غير نصية.")
     except Exception as e:
         logging.exception("حصل خطأ في handle_message")
