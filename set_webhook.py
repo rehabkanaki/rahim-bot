@@ -2,7 +2,7 @@ import os
 import requests
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-APP_URL = os.getenv("APP_URL")  # مثل: https://rahim-bot.onrender.com
+APP_URL = os.getenv("APP_URL", "").rstrip("/")  # يشيل / لو في الآخر
 
 webhook_url = f"{APP_URL}/webhook"
 
