@@ -31,4 +31,7 @@ if __name__ == '__main__':
         listen="0.0.0.0",
         port=PORT,
         webhook_url=f"{APP_URL}/{BOT_TOKEN}"
+        stop_signals=None  # يمنع البوت يقفل من تلقاء نفسه
+)
+
     )
