@@ -6,6 +6,9 @@ BOT_TOKEN = os.environ.get("BOT_TOKEN")
 APP_URL = os.environ.get("APP_URL")  # https://yourapp.onrender.com
 PORT = int(os.environ.get("PORT", 10000))
 
+import logging
+logging.basicConfig(level=logging.INFO)
+
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text("👋 البوت شغال على Render بدون Flask!")
 
